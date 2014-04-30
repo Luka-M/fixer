@@ -63,13 +63,29 @@ Fixer.prototype.getModel = function (model_name) {
 };
 
 Fixer.prototype.getFixture = function (model_name, fixture_id) {
-  var fixture = this.model_fixtures[model_name] && this.model_fixtures[model_name][fixture_id];
+  if (fixture_id instanceof Array){
+    var fixture = [];
+    for (var i =0;i<fixture_id.length;i++){
+      fixture.push(this.model_fixtures[model_name] && this.model_fixtures[model_name][fixture_id[i]]);   
+    }
+  } else {
+    var fixture = this.model_fixtures[model_name] && this.model_fixtures[model_name][fixture_id];
+  }
   if (!fixture) throw new Error('Fixture ' + model_name + '#' + fixture_id + ' does not exist.');
   return fixture;
 }
 
 Fixer.prototype.getInstance = function (model_name, fixture_id) {
-  var instance = this.instances[model_name] && this.instances[model_name][fixture_id];
+  if (fixture_id instanceof Array){
+    var instance = [];
+    for (var i =0;i<fixture_id.length;i++){
+      instance.push(this.instances[model_name] && this.instances[model_name][fixture_id[i]]);   
+    }
+  } else {
+    var instance = this.instances[model_name] && this.instances[model_name][fixture_id];
+  }
+
+  //var instance = this.instances[model_name] && this.instances[model_name][fixture_id];
   if (!instance) throw new Error('Instance ' + model_name + '#' + fixture_id + ' does not exist.');
   return instance;
 }
@@ -78,15 +94,15 @@ Fixer.prototype.getAssociations = function (Model, fixture) {
   var _this = this;
   var res = [];
   _.each(Model.associations, function (association) {
-    if (fixture[association.associationAccessor]) {
+    if (fixture[association.as]) {
       var local = {},
         foreign = {},
         type = association.type;
       // get setter from associations
-      local.setter = _s.camelize('set_' + association.associationAccessor);
+      local.setter = _s.camelize('set_' + association.as);
 
       foreign.model_name = _s.capitalize(association.target.name);
-      foreign.fixture_id = fixture[association.associationAccessor];
+      foreign.fixture_id = fixture[association.as];
       foreign.fixture = _this.getFixture(foreign.model_name, foreign.fixture_id);
 
       res.push({local: local, foreign: foreign, type: type});
@@ -100,7 +116,7 @@ Fixer.prototype.create = function (model_name, fixture_id, fixture, cb) {
 
   var Model = this.getModel(model_name),
     _this = this;
-  
+
   var inst = Model.build(fixture);
   
   if (fixture.createdAt){
