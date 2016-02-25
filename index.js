@@ -127,11 +127,11 @@ Fixer.prototype.create = function (model_name, fixture_id, fixture, cb) {
   }
 
   inst.save()
-    .success(function (instance) {
+    .then(function (instance) {
       _this.instances[model_name][fixture_id] = instance;
       _this.emit('create', model_name, fixture_id, instance);
       cb();
-    }).error(function (err) {
+    }).catch(function (err) {
       console.error('Failed to create ' + model_name + '#' + fixture_id);
       console.error(err);
       cb(err);
@@ -159,9 +159,9 @@ Fixer.prototype.saveAssociations = function (model_name, fixture_id, fixture, cb
     var foreign_instance = _this.getInstance(foreign.model_name, foreign.fixture_id);
 
     local_instance[local.setter](foreign_instance)
-      .success(function () {
+      .then(function () {
         cb();
-      }).error(function (err) {
+      }).catch(function (err) {
         cb(err);
       });
   }, function (err) {
